@@ -1,4 +1,4 @@
-package com.example.zen_launcher
+package dev.iori.zen_launcher
 
 import android.content.BroadcastReceiver
 import android.content.Context

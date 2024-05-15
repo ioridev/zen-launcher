@@ -1,4 +1,4 @@
-package com.example.zen_launcher
+package dev.iori.zen_launcher
 
 import android.app.*
 import android.app.usage.UsageEvents
