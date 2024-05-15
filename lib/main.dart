@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const methodChannel = MethodChannel('flutter_screentime');
+const methodChannel = MethodChannel('zen_launcher');
 
 void main() {
   runApp(const MyApp());

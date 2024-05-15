@@ -1,4 +1,4 @@
-package com.example.flutter_screentime
+package com.example.zen_launcher
 
 import android.app.AppOpsManager
 import android.app.KeyguardManager
@@ -31,7 +31,7 @@ const val NOTIFICATION_ID = 1
 class BlockAppService : Service() {
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
-    private val CHANNEL = "flutter_screentime"
+    private val CHANNEL = "zen_launcher"
     private var isOverlayDisplayed = false
     private val userApps = ArrayList<ResolveInfo>()
 

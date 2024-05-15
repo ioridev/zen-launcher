@@ -1,4 +1,4 @@
-package com.example.flutter_screentime
+package com.example.zen_launcher
 
 import android.app.*
 import android.app.usage.UsageEvents
@@ -35,7 +35,7 @@ val scope = CoroutineScope(Dispatchers.Default + job)
 
 class MainActivity: FlutterActivity() {
 
-    private val CHANNEL = "flutter_screentime"
+    private val CHANNEL = "zen_launcher"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         val params = WindowManager.LayoutParams(
