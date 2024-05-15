@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppListPage extends StatefulWidget {
   const AppListPage({super.key});
@@ -12,6 +13,7 @@ class AppListPage extends StatefulWidget {
 class _AppListPageState extends State<AppListPage> {
   List<AppInfo> _appList = [];
   List<AppInfo> _filteredAppList = [];
+  List<String> _favoriteApps = [];
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -19,6 +21,29 @@ class _AppListPageState extends State<AppListPage> {
   void initState() {
     super.initState();
     _getInstalledApps();
+  }
+
+  Future<void> _loadFavoriteApps() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _favoriteApps = prefs.getStringList('favoriteApps') ?? [];
+    });
+  }
+
+  Future<void> _saveFavoriteApps() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('favoriteApps', _favoriteApps);
+  }
+
+  void _toggleFavorite(String packageName) {
+    setState(() {
+      if (_favoriteApps.contains(packageName)) {
+        _favoriteApps.remove(packageName);
+      } else {
+        _favoriteApps.add(packageName);
+      }
+    });
+    _saveFavoriteApps();
   }
 
   Future<void> _getInstalledApps() async {
@@ -48,6 +73,42 @@ class _AppListPageState extends State<AppListPage> {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> showAppOptionsDialog(AppInfo app) async {
+      return showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(app.name),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  GestureDetector(
+                    child: Text(
+                      _favoriteApps.contains(app.packageName)
+                          ? 'Remove from Favorites'
+                          : 'Add to Favorites',
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _toggleFavorite(app.packageName);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Close'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: CustomScrollView(
@@ -77,6 +138,7 @@ class _AppListPageState extends State<AppListPage> {
                 AppInfo app = _filteredAppList[index];
                 return ListTile(
                   title: Text(app.name),
+                  onLongPress: () => showAppOptionsDialog(app),
                   onTap: () {
                     InstalledApps.startApp(app.packageName);
                   },
