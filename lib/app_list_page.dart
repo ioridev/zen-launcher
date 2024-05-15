@@ -50,11 +50,12 @@ class _AppListPageState extends State<AppListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
           SliverAppBar(
-            title: const Text('Launcher'),
+            backgroundColor: Colors.black,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48.0),
               child: Padding(
