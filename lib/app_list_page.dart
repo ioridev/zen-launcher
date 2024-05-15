@@ -29,6 +29,7 @@ class _AppListPageState extends State<AppListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: ListView.builder(
         itemCount: _appList.length,
         itemBuilder: (context, index) {
