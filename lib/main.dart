@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zen_launcher/app_list_page.dart';
+import 'package:zen_launcher/home_page.dart';
+import 'package:zen_launcher/widgets_page.dart';
 
 const methodChannel = MethodChannel('zen_launcher');
 
@@ -32,14 +34,16 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(initialPage: 1);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
         controller: _pageController,
         children: const [
+          HomePage(),
           AppListPage(),
+          WidgetsPage(),
         ],
       ),
     );
