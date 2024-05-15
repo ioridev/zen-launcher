@@ -41,9 +41,9 @@ class _MyWidgetState extends State<MyWidget> {
       body: PageView(
         controller: _pageController,
         children: const [
+          WidgetsPage(),
           HomePage(),
           AppListPage(),
-          WidgetsPage(),
         ],
       ),
     );
