@@ -1,70 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppListPage extends StatefulWidget {
-  const AppListPage({super.key});
+final favoriteAppsProvider =
+    StateNotifierProvider<FavoriteAppsNotifier, List<String>>((ref) {
+  return FavoriteAppsNotifier();
+});
 
-  @override
-  State<AppListPage> createState() => _AppListPageState();
-}
-
-class _AppListPageState extends State<AppListPage> {
-  List<AppInfo> _appList = [];
-  List<AppInfo> _filteredAppList = [];
-  List<String> _favoriteApps = [];
-  final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    _getInstalledApps();
+class FavoriteAppsNotifier extends StateNotifier<List<String>> {
+  FavoriteAppsNotifier() : super([]) {
+    _loadFavoriteApps();
   }
 
   Future<void> _loadFavoriteApps() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _favoriteApps = prefs.getStringList('favoriteApps') ?? [];
-    });
+    state = prefs.getStringList('favoriteApps') ?? [];
   }
 
   Future<void> _saveFavoriteApps() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('favoriteApps', _favoriteApps);
+    await prefs.setStringList('favoriteApps', state);
   }
 
-  void _toggleFavorite(String packageName) {
-    setState(() {
-      if (_favoriteApps.contains(packageName)) {
-        _favoriteApps.remove(packageName);
-      } else {
-        _favoriteApps.add(packageName);
-      }
-    });
+  void toggleFavorite(String packageName) {
+    if (state.contains(packageName)) {
+      state = state.where((app) => app != packageName).toList();
+    } else {
+      state = [...state, packageName];
+    }
     _saveFavoriteApps();
   }
+}
 
-  Future<void> _getInstalledApps() async {
-    List<AppInfo> apps = await InstalledApps.getInstalledApps();
+class AppListPage extends ConsumerStatefulWidget {
+  const AppListPage({super.key});
+
+  @override
+  ConsumerState<AppListPage> createState() => _AppListPageState();
+}
+
+class _AppListPageState extends ConsumerState<AppListPage> {
+  List<AppInfo> appList = [];
+  List<AppInfo> filteredAppList = [];
+  List<String> favoriteApps = [];
+  final TextEditingController searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    getInstalledApps();
+  }
+
+  Future<void> loadFavoriteApps() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _appList = apps;
-      _filteredAppList = apps;
+      favoriteApps = prefs.getStringList('favoriteApps') ?? [];
     });
   }
 
-  void _filterApps(String query) {
-    List<AppInfo> filteredApps = _appList
+  Future<void> saveFavoriteApps() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('favoriteApps', favoriteApps);
+  }
+
+  void toggleFavorite(String packageName) {
+    setState(() {
+      if (favoriteApps.contains(packageName)) {
+        favoriteApps.remove(packageName);
+      } else {
+        favoriteApps.add(packageName);
+      }
+    });
+    saveFavoriteApps();
+  }
+
+  Future<void> getInstalledApps() async {
+    List<AppInfo> apps = await InstalledApps.getInstalledApps();
+    setState(() {
+      appList = apps;
+      filteredAppList = apps;
+    });
+  }
+
+  void filterApps(String query) {
+    List<AppInfo> filteredApps = appList
         .where((app) => app.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
     setState(() {
-      _filteredAppList = filteredApps;
+      filteredAppList = filteredApps;
     });
   }
 
-  void _scrollToIndex(int index) {
-    _scrollController.animateTo(
+  void scrollToIndex(int index) {
+    scrollController.animateTo(
       index * 56.0,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
@@ -73,6 +104,7 @@ class _AppListPageState extends State<AppListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final favoriteApps = ref.watch(favoriteAppsProvider);
     Future<void> showAppOptionsDialog(AppInfo app) async {
       void showAppInfo(AppInfo app) {
         // TODO: Implement app info display logic
@@ -95,13 +127,15 @@ class _AppListPageState extends State<AppListPage> {
                 children: <Widget>[
                   GestureDetector(
                     child: Text(
-                      _favoriteApps.contains(app.packageName)
+                      favoriteApps.contains(app.packageName)
                           ? 'Remove from Favorites'
                           : 'Add to Favorites',
                     ),
                     onTap: () {
                       Navigator.of(context).pop();
-                      _toggleFavorite(app.packageName);
+                      ref
+                          .read(favoriteAppsProvider.notifier)
+                          .toggleFavorite(app.packageName);
                     },
                   ),
                   const Divider(),
@@ -139,7 +173,7 @@ class _AppListPageState extends State<AppListPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: CustomScrollView(
-        controller: _scrollController,
+        controller: scrollController,
         slivers: [
           SliverAppBar(
             backgroundColor: Colors.black,
@@ -148,12 +182,12 @@ class _AppListPageState extends State<AppListPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: TextField(
-                  controller: _searchController,
+                  controller: searchController,
                   decoration: const InputDecoration(
                     hintText: 'Search apps...',
                   ),
                   onChanged: (value) {
-                    _filterApps(value);
+                    filterApps(value);
                   },
                 ),
               ),
@@ -162,7 +196,7 @@ class _AppListPageState extends State<AppListPage> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                AppInfo app = _filteredAppList[index];
+                AppInfo app = filteredAppList[index];
                 return ListTile(
                   title: Text(app.name),
                   onLongPress: () => showAppOptionsDialog(app),
@@ -171,14 +205,14 @@ class _AppListPageState extends State<AppListPage> {
                   },
                 );
               },
-              childCount: _filteredAppList.length,
+              childCount: filteredAppList.length,
             ),
           ),
         ],
       ),
       floatingActionButton: AlphabetScrollBar(
-        onTap: _scrollToIndex,
-        filteredAppList: _filteredAppList,
+        onTap: scrollToIndex,
+        filteredAppList: filteredAppList,
       ),
     );
   }

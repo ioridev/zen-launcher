@@ -3,15 +3,10 @@ import 'package:flutter_analog_clock/flutter_analog_clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zen_launcher/app_list_page.dart';
 
 final installedAppsProvider = FutureProvider<List<AppInfo>>((ref) async {
   return await InstalledApps.getInstalledApps();
-});
-
-final favoriteAppsProvider = FutureProvider<List<String>>((ref) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getStringList('favoriteApps') ?? [];
 });
 
 class HomePage extends ConsumerWidget {
@@ -20,7 +15,6 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final installedApps = ref.watch(installedAppsProvider);
-    final favoriteApps = ref.watch(favoriteAppsProvider);
 
     String getAppName(String packageName) {
       return installedApps.maybeWhen(
@@ -43,8 +37,9 @@ class HomePage extends ConsumerWidget {
             child: AnalogClock.dark(),
           ),
           Expanded(
-            child: favoriteApps.when(
-              data: (favorites) {
+            child: Consumer(
+              builder: (context, ref, _) {
+                final favorites = ref.watch(favoriteAppsProvider);
                 return ListView.builder(
                   itemCount: favorites.length,
                   itemBuilder: (context, index) {
@@ -59,8 +54,6 @@ class HomePage extends ConsumerWidget {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) => const Center(child: Text('Error')),
             ),
           ),
         ],
