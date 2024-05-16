@@ -74,6 +74,17 @@ class _AppListPageState extends State<AppListPage> {
   @override
   Widget build(BuildContext context) {
     Future<void> showAppOptionsDialog(AppInfo app) async {
+      void showAppInfo(AppInfo app) {
+        // TODO: Implement app info display logic
+        // You can use the `app` object to access app information
+        // and display it in a new screen or dialog
+      }
+
+      void uninstallApp(AppInfo app) {
+        // TODO: Implement app uninstallation logic
+        // You can use the `app` object to get the package name
+        // and perform the uninstallation process
+      }
       return showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -91,6 +102,22 @@ class _AppListPageState extends State<AppListPage> {
                     onTap: () {
                       Navigator.of(context).pop();
                       _toggleFavorite(app.packageName);
+                    },
+                  ),
+                  const Divider(),
+                  GestureDetector(
+                    child: const Text('App Info'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      showAppInfo(app);
+                    },
+                  ),
+                  const Divider(),
+                  GestureDetector(
+                    child: const Text('Uninstall'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      uninstallApp(app);
                     },
                   ),
                 ],

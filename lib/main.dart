@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zen_launcher/app_list_page.dart';
 import 'package:zen_launcher/home_page.dart';
 import 'package:zen_launcher/widgets_page.dart';
@@ -9,7 +10,7 @@ import 'package:zen_launcher/widgets_page.dart';
 const methodChannel = MethodChannel('zen_launcher');
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
